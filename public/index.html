@@ -5,9 +5,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.2/TweenMax.min.js"></script>
     <script src="threejs-loader/OBJLoader.js"></script>
-    <script src="threejs-loader/MTLLoader.js"></script> 
+    <script src="threejs-loader/MTLLoader.js"></script>
+    <script src="js/dat.gui.min.js"></script> 
     <script src="js/OrbitControl.js"></script> 
     <script src="js/threex.domevents.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <style type="text/css">
     body {
         margin: 0px;
@@ -17,13 +19,51 @@
         display: block;
     }
     </style>
+     <style>
+            body{
+                font-family: 'Montserrat', sans-serif;
+                margin:0;
+                overflow:hidden;            
+            }
+            .popup{
+                max-width: 75%;
+                height: 500px;
+                width: 500px;
+                background-color: rgba(255, 255, 255, 0.49);
+                border-radius: 5px;
+                position: absolute;
+                bottom: 5%;
+                left: 10%;
+                padding: 5px 20px 5px 20px;
+                -moz-box-shadow: 3px 3px 5px 6px #ccc;
+                -webkit-box-shadow: 3px 3px 5px 6px #ccc;
+                box-shadow: 1px 3px 1px 1px rgba(0, 0, 0, 0.17);
+                z-index:110;
+            }
+        </style>
     </head>
     <body>
-            <div id="info">
-                    <a href="https://threejs.org" target="_blank" rel="noopener noreferrer">three.js</a> UF Rocket TEAM
+            <div class="popup">
+                <div class="text"></div>
             </div>
+            <div id ="webGL-container" style="z-index:-9;"></div>
         <script>
+             $(".popup").hide();
+
+            var guiControls = new function(){
+                this.rotationX = 0.001;
+                this.rotationY = 0.001;
+                this.rotationZ= 0.001;
+                this.stop = 0;
+            }
+            var datGUI = new dat.GUI();
+            datGUI.add(guiControls, 'rotationX',0,0.20);
+            datGUI.add(guiControls, 'rotationY',0,0.20);
+            datGUI.add(guiControls, 'rotationZ',0,0.20);
+            datGUI.add(guiControls, 'stop');
+
             let missile;
+            let main;
             const scene = new THREE.Scene();
 
             const light = new THREE.DirectionalLight('#ffffff',0.9);
@@ -39,8 +79,8 @@
             camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 200 );
 			camera.position.set( - 0.7, 14.6, 43.2 );
             var clock = new THREE.Clock();
-            //camera.position.z = 6.5;
-            camera.lookAt( 0, 3, 0 );
+            camera.position.z = 6.5;
+            
 
 
             const renderer = new THREE.WebGLRenderer({antialias:true});
@@ -58,7 +98,7 @@
             });
 
            
-          
+
 
 
             var raycaster = new THREE.Raycaster();
@@ -84,10 +124,16 @@
 
                 raycaster.setFromCamera(mouse, camera);
 
-               
+                var color = (Math.random() * 0xffffff);
                 var intersects = raycaster.intersectObjects(scene.children, true);
                 for( var i =0; i < intersects.length; i++){ // do what you want to do with the missile here
-                        intersects[i].object.material.color.set(0xff0000)
+                        intersects[i].object.material.color.setHex(color);
+                        this.temp = intersects[i].object.material.color.getHexString();
+                        this.name= intersects[i].object.name;
+
+                        $(".text").empty();
+                        $(".popup").append("<div class='text'><p>This is the color aaa<strong>#"+this.temp+" and this is the name" +this.name +"yeah</strong></p></div>");
+                        $(".popup").show();
                 }
             }
             
@@ -96,36 +142,27 @@
            controls.minDistance = 1;
            controls.maxDistance = 1000;
 
-            const geometry1= new THREE.SphereGeometry(4,4,4);
-            const material1 = new THREE.MeshNormalMaterial({wireframe:true});
-            const sphere1 = new THREE.Mesh(geometry1,material1);
-            sphere1.position.x = -10;
-            scene.add(sphere1);
+        //     const geometry1= new THREE.SphereGeometry(4,4,4);
+        //     const material1 = new THREE.MeshNormalMaterial({wireframe:true});
+        //     const sphere1 = new THREE.Mesh(geometry1,material1);
+        //     sphere1.position.x = -10;
+        //     scene.add(sphere1);
 
-             const domEvents = new THREEx.DomEvents(camera,renderer.domElement)
-            // let missileClicked = false;
-            // domEvents.addEventListener(missile, 'click', event => {
-            //     if(!missileClicked){
-            //         material.wireframe = false;
-            //         sphereClicked = true;
-            //     }else{
-            //         material.wireframe = true;
-            //         sphereClicked = false;
-            //         console.log("works");
-            //     }
-            // })    
+        //      const domEvents = new THREEx.DomEvents(camera,renderer.domElement)
+              
 
-           domEvents.addEventListener(sphere1, 'mouseover', event => {
-               sphere1.scale.set(5,5,5);
-           });
-           domEvents.addEventListener(sphere1, 'mouseout', event => {
-               sphere1.scale.set(1,1,1);
-           });
+        //    domEvents.addEventListener(sphere1, 'mouseover', event => {
+        //        sphere1.scale.set(5,5,5);
+
+        //    });
+        //    domEvents.addEventListener(sphere1, 'mouseout', event => {
+        //        sphere1.scale.set(1,1,1);
+        //    });
 
             const objLoader = new THREE.OBJLoader();
             objLoader.setPath('/blender-files/');
 
-            var material = new THREE.MeshLambertMaterial({color:0xFFCC00});
+            //var material = new THREE.MeshLambertMaterial({color:0xFFCC00});
 
             const mtlLoader = new THREE.MTLLoader();
             mtlLoader.setPath('/blender-files/');
@@ -143,14 +180,37 @@
                     scene.add(object);
                 });
             })
+            new Promise((resolve) => {
+                mtlLoader.load('main.mtl', (materials) => {
+                    resolve(materials);
+                })
+            })
+            .then((materials) => {
+                materials.preload();
+                objLoader.setMaterials(materials);
+                objLoader.load('main.obj', (object) => {
+                    main = object;
+                    scene.add(object);
+                    main.position.x = 8;
+                    main.position.y = 8;
+                    main.position.z = 8;
+                });
+            })
+
 
             function render() {
 
                 var delta = clock.getDelta();
                 if(missile) {
-                    // missile.rotation.x += 0.001;
-                    // missile.rotation.y += 0.001;
-                    missile.rotation.z += delta * 0.3;
+                    missile.rotation.x += guiControls.rotationX;
+                    missile.rotation.y += guiControls.rotationY;
+                    missile.rotation.z += guiControls.rotationZ;
+                    
+                }
+                if(main){
+                    main.rotation.x += guiControls.rotationX;
+                    main.rotation.y += guiControls.rotationY;
+                    main.rotation.z += guiControls.rotationZ;
                 }
                 requestAnimationFrame(render);    
                 controls.update();
