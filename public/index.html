@@ -27,8 +27,8 @@
             }
             .popup{
                 max-width: 75%;
-                height: 500px;
-                width: 500px;
+                height: 400px;
+                width: 400px;
                 background-color: rgba(255, 255, 255, 0.49);
                 border-radius: 5px;
                 position: absolute;
@@ -44,26 +44,29 @@
     </head>
     <body>
             <div class="popup">
-                <div class="text"></div>
+                <div class="text">
+                    <div class="text1"></div>
+                </div>
             </div>
-            <div id ="webGL-container" style="z-index:-9;"></div>
         <script>
+            
              $(".popup").hide();
 
             var guiControls = new function(){
                 this.rotationX = 0.001;
                 this.rotationY = 0.001;
                 this.rotationZ= 0.001;
-                this.stop = 0;
+                
             }
             var datGUI = new dat.GUI();
             datGUI.add(guiControls, 'rotationX',0,0.20);
             datGUI.add(guiControls, 'rotationY',0,0.20);
             datGUI.add(guiControls, 'rotationZ',0,0.20);
-            datGUI.add(guiControls, 'stop');
+            
 
             let missile;
-            let main;
+            
+            
             const scene = new THREE.Scene();
 
             const light = new THREE.DirectionalLight('#ffffff',0.9);
@@ -79,7 +82,8 @@
             camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 200 );
 			camera.position.set( - 0.7, 14.6, 43.2 );
             var clock = new THREE.Clock();
-            camera.position.z = 6.5;
+            camera.position.z = 7;
+            
             
 
 
@@ -115,8 +119,10 @@
                 onMouseMove(event);
                 console.log(" touch screen works");
             }
+            var intersects1 = raycaster.intersectObjects(scene.children, true);
+            function onMouseMove(event)
+            {
 
-            function onMouseMove(event){
                 event.preventDefault();
 
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -124,80 +130,82 @@
 
                 raycaster.setFromCamera(mouse, camera);
 
-                var color = (Math.random() * 0xffffff);
+                
+                
+                var color = 0xf8ff00;
+                let clicked = false;
                 var intersects = raycaster.intersectObjects(scene.children, true);
-                for( var i =0; i < intersects.length; i++){ // do what you want to do with the missile here
-                        intersects[i].object.material.color.setHex(color);
-                        this.temp = intersects[i].object.material.color.getHexString();
+                for( var i = 0; i < intersects.length; i++){  
                         this.name= intersects[i].object.name;
+                        console.log(this.name);
+                       
+                         if(this.name === "Fuselage_Cylinder"){
+                            intersects[i].object.material.color.setHex(color);
+                             $(".text").empty(); 
+                             $(".popup").append("<div class='text' <p>The name of the part: <strong>Fuselage</strong><p></div>",
+                                              "<div class='text' <p>Info:The fuselage is the main part of the rocket body. It houses almost all of the important parts of the rocket. The fuselage is basically a tube that breaks into separate elements during the flight.</p></div>",
+                                              "<div class='text' <p><img src ='bu.jpg' height='250px' width='250px'></p></div>",
+                                              );
+                            $(".popup").show();
+                            
+                         }else if(this.name === "Wings_Cylinder.012"){
+                            intersects[i].object.material.color.setHex(color);
+                             $(".text").empty(); 
+                             $(".popup").append("<div class='text' <p>The name of the part: <strong>Nose Cone and Fins</strong><p></div>",
+                                              "<div class='text' <p>Info:The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.</p></div>",
+                                              "<div class='text' <p><img src ='fus.jpg' height='300px' width='300px'></p></div>",
+                                              );
+                            $(".popup").show();
+                             
+                        }else if(this.name === "SAG_Cylinder.006"){
+                            intersects[i].object.material.color.setHex(0xf77000);
+                             $(".text").empty(); 
+                             $(".popup").append("<div class='text' <p>The name of the part: <strong>Nose Cone</strong><p></div>",
+                                              "<div class='text' <p>Info:The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.</p></div>",
+                                              "<div class='text' <p><img src ='fus.jpg' height='300px' width='300px'></p></div>",
+                                              );
+                            $(".popup").show();
 
-                        $(".text").empty();
-                        $(".popup").append("<div class='text'><p>This is the color aaa<strong>#"+this.temp+" and this is the name" +this.name +"yeah</strong></p></div>");
-                        $(".popup").show();
+                        }else{
+                            intersects[i].object.material.color.setHex(0xf77000);
+                            $(".text").empty(); 
+                             $(".popup").append("<div class='text' <p>The name of the part: <strong>Nose Cone</strong><p></div>",
+                                              "<div class='text' <p>Info:The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.</p></div>",
+                                              "<div class='text' <p><img src ='su.jpg' height='300px' width='300px'></p></div>",
+                                              );
+                            $(".popup").show();
+                        }
+                        
                 }
             }
             
-
            controls = new THREE.OrbitControls(camera,renderer.domElement);
            controls.minDistance = 1;
            controls.maxDistance = 1000;
 
-        //     const geometry1= new THREE.SphereGeometry(4,4,4);
-        //     const material1 = new THREE.MeshNormalMaterial({wireframe:true});
-        //     const sphere1 = new THREE.Mesh(geometry1,material1);
-        //     sphere1.position.x = -10;
-        //     scene.add(sphere1);
-
-        //      const domEvents = new THREEx.DomEvents(camera,renderer.domElement)
-              
-
-        //    domEvents.addEventListener(sphere1, 'mouseover', event => {
-        //        sphere1.scale.set(5,5,5);
-
-        //    });
-        //    domEvents.addEventListener(sphere1, 'mouseout', event => {
-        //        sphere1.scale.set(1,1,1);
-        //    });
-
+        
             const objLoader = new THREE.OBJLoader();
             objLoader.setPath('/blender-files/');
-
-            //var material = new THREE.MeshLambertMaterial({color:0xFFCC00});
 
             const mtlLoader = new THREE.MTLLoader();
             mtlLoader.setPath('/blender-files/');
 
+           
             new Promise((resolve) => {
-                mtlLoader.load('missile.mtl', (materials) => {
+                mtlLoader.load('correct.mtl', (materials) => {
                     resolve(materials);
                 })
             })
             .then((materials) => {
                 materials.preload();
                 objLoader.setMaterials(materials);
-                objLoader.load('deneme.obj', (object) => {
+                objLoader.load('correct.obj', (object) => {
                     missile = object;
                     scene.add(object);
                 });
-            })
-            new Promise((resolve) => {
-                mtlLoader.load('main.mtl', (materials) => {
-                    resolve(materials);
-                })
-            })
-            .then((materials) => {
-                materials.preload();
-                objLoader.setMaterials(materials);
-                objLoader.load('main.obj', (object) => {
-                    main = object;
-                    scene.add(object);
-                    main.position.x = 8;
-                    main.position.y = 8;
-                    main.position.z = 8;
-                });
-            })
+            });
 
-
+        
             function render() {
 
                 var delta = clock.getDelta();
@@ -205,23 +213,12 @@
                     missile.rotation.x += guiControls.rotationX;
                     missile.rotation.y += guiControls.rotationY;
                     missile.rotation.z += guiControls.rotationZ;
-                    
-                }
-                if(main){
-                    main.rotation.x += guiControls.rotationX;
-                    main.rotation.y += guiControls.rotationY;
-                    main.rotation.z += guiControls.rotationZ;
                 }
                 requestAnimationFrame(render);    
                 controls.update();
                 renderer.render(scene,camera);
             }
-
             render();
-
-            
-
-
         </script>
     </body>
 </html>

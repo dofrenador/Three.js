@@ -1,0 +1,19 @@
+{
+    "descriptions": [
+        {
+            "name": "Nose Cone",
+            "info": "The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.",
+            "src": "./rocket_pictures/nosecone.jpg"
+        },
+        {
+            "name": "Fusealage",
+            "info": "The fuselage is the main part of the rocket body. It houses almost all of the important parts of the rocket. The fuselage is basically a tube that breaks into separate elements during the flight.",
+            "src": "./rocket_pictures/fuselage.jpg"
+        },
+        {
+            "name": "Fins",
+            "info": "A set of fins are located near the back of the fuselage.  Most rockets have 3 or 4 fins although some have as many as 8.  These fins are actually similar to wings of an airplane. In this case, the fins provide the aerodynamic forces that steer the rocket into the wind. This steering is what keeps the rocket stable so it does not fly off course.",
+            "src": "./rocket_pictures/fins.jpg"
+        }
+    ]
+}
