@@ -9,6 +9,7 @@
     <script src="js/dat.gui.min.js"></script> 
     <script src="js/OrbitControl.js"></script> 
     <script src="js/threex.domevents.js"></script>
+    <script src="js/DragControls.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <style type="text/css">
     body {
@@ -39,23 +40,55 @@
                 -webkit-box-shadow: 3px 3px 5px 6px #ccc;
                 box-shadow: 1px 3px 1px 1px rgba(0, 0, 0, 0.17);
                 z-index:110;
+                animation: pop-in 0.5s ease forwards;
+               
+            }
+            @-webkit-keyframes pop-in {
+            0% { opacity: 0; -webkit-transform: scale(0.5); }
+            100% { opacity: 1; -webkit-transform: scale(1); }
+            }
+            @-moz-keyframes pop-in {
+            0% { opacity: 0; -moz-transform: scale(0.5); }
+            100% { opacity: 1; -moz-transform: scale(1); }
+            }
+            @keyframes pop-in {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+            }
+            .popup1{
+                max-width: 75%;
+                height: 400px;
+                width: 400px;
+                background-color: rgba(255, 255, 255, 0.49);
+                border-radius: 5px;
+                position: absolute;
+                bottom:  5%;
+                right: 30%;
+                padding: 5px 20px 5px 20px;
+                -moz-box-shadow: 3px 3px 5px 6px #ccc;
+                -webkit-box-shadow: 3px 3px 5px 6px #ccc;
+                box-shadow: 1px 3px 1px 1px rgba(0, 0, 0, 0.17);
+                z-index:110;
+                animation: pop-in 0.5s ease forwards;
             }
         </style>
     </head>
     <body>
             <div class="popup">
-                <div class="text">
+                <div class="text"></div>
+            </div>
+            <div class="popup1">
                     <div class="text1"></div>
                 </div>
-            </div>
         <script>
             
              $(".popup").hide();
+             $(".popup1").hide();
 
             var guiControls = new function(){
-                this.rotationX = 0.001;
-                this.rotationY = 0.001;
-                this.rotationZ= 0.001;
+                this.rotationX = 0.0001;
+                this.rotationY = 0.0001;
+                this.rotationZ= 0.0001;
                 
             }
             var datGUI = new dat.GUI();
@@ -65,7 +98,8 @@
             
 
             let missile;
-            
+            var startColor;
+            var counter = 0;
             
             const scene = new THREE.Scene();
 
@@ -79,30 +113,50 @@
 
 
             //const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
-            camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 200 );
-			camera.position.set( - 0.7, 14.6, 43.2 );
+            const camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 5, 30000 );
+            camera.position.set(-8,0,7);
             var clock = new THREE.Clock();
-            camera.position.z = 7;
-            
-            
+           
 
 
             const renderer = new THREE.WebGLRenderer({antialias:true});
             renderer.setClearColor('#e5e5e5');
+            renderer.shadowMapEnabled = false;
+            renderer.shadowMapSoft = false;
 
             renderer.setSize(window.innerWidth,window.innerHeight);
             renderer.setPixelRatio( window.devicePixelRatio );
             document.body.appendChild(renderer.domElement);
+            let controls = new THREE.OrbitControls(camera,renderer.domElement);
+            controls.minDistance = -10;
+            controls.maxDistance = 1000;
+            let materialArray = [];
+            let texture_ft = new THREE.TextureLoader().load('/kurt/space_ft.png');
+            let texture_bk = new THREE.TextureLoader().load('/kurt/space_bk.png');
+            let texture_up = new THREE.TextureLoader().load('/kurt/space_up.png');
+            let texture_dn = new THREE.TextureLoader().load('/kurt/space_dn.png');
+            let texture_rt = new THREE.TextureLoader().load('/kurt/space_rt.png');
+            let texture_lf = new THREE.TextureLoader().load('/kurt/space_lf.png');
             
+            materialArray.push(new THREE.MeshBasicMaterial({map:texture_ft}));
+            materialArray.push(new THREE.MeshBasicMaterial({map:texture_bk}));
+            materialArray.push(new THREE.MeshBasicMaterial({map:texture_up}));
+            materialArray.push(new THREE.MeshBasicMaterial({map:texture_dn}));
+            materialArray.push(new THREE.MeshBasicMaterial({map:texture_rt}));
+            materialArray.push(new THREE.MeshBasicMaterial({map:texture_lf}));
+
+            for (let i = 0; i < 6; i++)
+                materialArray[i].side = THREE.BackSide;
+
+            let skyBoxGeo = new THREE.BoxGeometry(1000,1000,1000);
+                let skyBox = new THREE.Mesh(skyBoxGeo,materialArray);
+                scene.add(skyBox);
 
             window.addEventListener('resize', () => {
                 renderer.setSize(window.innerWidth,window.innerHeight);
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
             });
-
-           
-
 
 
             var raycaster = new THREE.Raycaster();
@@ -119,7 +173,7 @@
                 onMouseMove(event);
                 console.log(" touch screen works");
             }
-            var intersects1 = raycaster.intersectObjects(scene.children, true);
+        
             function onMouseMove(event)
             {
 
@@ -129,61 +183,95 @@
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
                 raycaster.setFromCamera(mouse, camera);
-
-                
                 
                 var color = 0xf8ff00;
-                let clicked = false;
                 var intersects = raycaster.intersectObjects(scene.children, true);
                 for( var i = 0; i < intersects.length; i++){  
                         this.name= intersects[i].object.name;
+                        this.temp = intersects[i].object.material.color.getHexString();
+                        console.log(this.temp);
+                    
                         console.log(this.name);
                        
                          if(this.name === "Fuselage_Cylinder"){
+                            counter++;
+                            console.log("Clicked countr:" + counter);
                             intersects[i].object.material.color.setHex(color);
+                            
                              $(".text").empty(); 
                              $(".popup").append("<div class='text' <p>The name of the part: <strong>Fuselage</strong><p></div>",
                                               "<div class='text' <p>Info:The fuselage is the main part of the rocket body. It houses almost all of the important parts of the rocket. The fuselage is basically a tube that breaks into separate elements during the flight.</p></div>",
-                                              "<div class='text' <p><img src ='bu.jpg' height='250px' width='250px'></p></div>",
+                                              "<div class='text' <p><img src ='fuselage.jpg' height='250px' width='300px'></p></div>",
                                               );
                             $(".popup").show();
+                            if(counter % 2 == 0){
+                                intersects[i].object.material.color.setHex(0xcccccc);
+                                $(".text").empty(); 
+                                $(".popup").hide();
+                            }
                             
                          }else if(this.name === "Wings_Cylinder.012"){
+                            counter++;
+                            console.log("Clicked countr:" + counter);
                             intersects[i].object.material.color.setHex(color);
                              $(".text").empty(); 
                              $(".popup").append("<div class='text' <p>The name of the part: <strong>Nose Cone and Fins</strong><p></div>",
                                               "<div class='text' <p>Info:The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.</p></div>",
-                                              "<div class='text' <p><img src ='fus.jpg' height='300px' width='300px'></p></div>",
+                                              "<div class='text' <p><img src ='nosecone.jpg' height='300px' width='300px'></p></div>",
                                               );
                             $(".popup").show();
+                            if(counter % 2 == 0){
+                                intersects[i].object.material.color.setHex(0xcccccc);
+                                $(".text").empty(); 
+                                $(".popup").hide();
+                            }
+
+                            $(".text1").empty(); 
+                             $(".popup1").append("<div class='text' <p>The name of the part: <strong>Nose Cone and Fins</strong><p></div>",
+                                              "<div class='text' <p>Info: A set of fins are located near the back of the fuselage.  Most rockets have 3 or 4 fins although some have as many as 8.  These fins are actually similar to wings of an airplane.  In this case, the fins provide the aerodynamic forces that steer the rocket into the wind.  This steering is what keeps the rocket stable so it does not fly off course.</p></div>",
+                                              "<div class='text' <p><img src ='fins.jpg' height='200px' width='300px'></p></div>",
+                                              );
+                            $(".popup1").show();
+                            if(counter % 2 == 0){
+                                intersects[i].object.material.color.setHex(0xcccccc);
+                                $(".text1").empty(); 
+                                $(".popup1").hide();
+                            }
                              
                         }else if(this.name === "SAG_Cylinder.006"){
-                            intersects[i].object.material.color.setHex(0xf77000);
+                            counter++;
+                            console.log("Clicked countr:" + counter);
+                            intersects[i].object.material.color.setHex(color);
                              $(".text").empty(); 
                              $(".popup").append("<div class='text' <p>The name of the part: <strong>Nose Cone</strong><p></div>",
                                               "<div class='text' <p>Info:The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.</p></div>",
                                               "<div class='text' <p><img src ='fus.jpg' height='300px' width='300px'></p></div>",
                                               );
                             $(".popup").show();
+                            if(counter % 2 == 0){
+                                intersects[i].object.material.color.setHex(0xcccccc);
+                                $(".text").empty(); 
+                                $(".popup").hide();
+                            }
 
                         }else{
-                            intersects[i].object.material.color.setHex(0xf77000);
+                            //intersects[i].object.material.color.setHex(0xf77000);
                             $(".text").empty(); 
                              $(".popup").append("<div class='text' <p>The name of the part: <strong>Nose Cone</strong><p></div>",
                                               "<div class='text' <p>Info:The nosecone is the front of the rocket. Its main purpose is to reduce the aerodynamic drag so the rocket goes through the air easier.</p></div>",
                                               "<div class='text' <p><img src ='su.jpg' height='300px' width='300px'></p></div>",
                                               );
                             $(".popup").show();
+                            if(counter % 2 == 0){
+                                intersects[i].object.material.color.setHex(0xcccccc);
+                                $(".text").empty(); 
+                                $(".popup").hide();
+                            }
                         }
                         
                 }
             }
             
-           controls = new THREE.OrbitControls(camera,renderer.domElement);
-           controls.minDistance = 1;
-           controls.maxDistance = 1000;
-
-        
             const objLoader = new THREE.OBJLoader();
             objLoader.setPath('/blender-files/');
 
@@ -201,10 +289,12 @@
                 objLoader.setMaterials(materials);
                 objLoader.load('correct.obj', (object) => {
                     missile = object;
+                    object.castShadow = true;
+                    object.receiveShadow = true;
                     scene.add(object);
                 });
             });
-
+            
         
             function render() {
 
@@ -213,6 +303,7 @@
                     missile.rotation.x += guiControls.rotationX;
                     missile.rotation.y += guiControls.rotationY;
                     missile.rotation.z += guiControls.rotationZ;
+                     
                 }
                 requestAnimationFrame(render);    
                 controls.update();
